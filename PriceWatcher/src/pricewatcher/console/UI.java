@@ -13,10 +13,9 @@ import pricewatcher.model.Item;
 import pricewatcher.model.PriceFinder;
 
 public class UI {
-	public List<Item> items;
-	
-	public UI () {
-		//Creates the hard-coded item used for the terminal version of price watcher
+
+	public static List<Item> createItemList () {
+		// Creates the hard-coded item list used for the terminal version of price watcher
 		String testItemUrl = "https://www.bestbuy.com/site/samsung-ue590-series-28-led-4k-uhd-monitor-black/5484022.p?skuId=5484022";
 		String testItemName = "LED monitor";
 		String testDateAdded = "8/25/18";
@@ -25,48 +24,11 @@ public class UI {
 		Item testItem = new Item(testItemName, testItemInitialPrice, testItemUrl, testDateAdded);
 		List<Item> testItemList = new ArrayList<Item>();
 		testItemList.add(testItem);
-		this.items = testItemList;
+		return testItemList;
 	}
 	
-	public static void run() {
-		 /* Runs price watcher on the terminal.*/
-		UI consoleInterface  = new UI();
-		System.out.println("Welcome to Price Watcher!");
-
-		displayItems(consoleInterface);
-		
-		Scanner reader = new Scanner(System.in);
-		int userChoice = getUserChoice(reader);
-		
-		List<Item> itemList = consoleInterface.items;
-
-		while (userChoice != -1) {
-			if (userChoice == 1) {
-				for (Item item: itemList) {
-					PriceFinder finder = new PriceFinder(item);
-					item.updatePrice(finder.getNewPrice());
-				}
-				displayItems(consoleInterface);
-				userChoice = getUserChoice(reader);
-			}
-			else if (userChoice == 2) {
-				for (Item item: itemList) {
-					launchWebsite(item);
-				}
-				userChoice = getUserChoice(reader);
-			}
-			else {
-				System.out.println("Not a valid input.");
-				userChoice = getUserChoice(reader);
-			}
-		}
-		reader.close();
-		System.out.println("Thank you for using this program!");
-	}
-	
-	public static void displayItems(UI ui) {
+	public static void displayItems(List<Item> itemList) {
 		/* Displays the item information of each item on the terminal.*/
-		List<Item> itemList = ui.items;
 		for (Item item: itemList) {
 			System.out.println("Name: " + item.getName());
 			System.out.println("URL: " + item.getURL());
@@ -105,6 +67,40 @@ public class UI {
 		else {
 			System.out.println("Unable to access webpage for " + item.getName() + ".");
 		}
+	}
+
+	public static void run() {
+		 /* Runs price watcher on the terminal.*/
+		List<Item> itemList = createItemList();
+		System.out.println("Welcome to Price Watcher!");
+
+		displayItems(itemList);
+		
+		Scanner reader = new Scanner(System.in);
+		int userChoice = getUserChoice(reader);
+
+		while (userChoice != -1) {
+			if (userChoice == 1) {
+				for (Item item: itemList) {
+					PriceFinder finder = new PriceFinder(item);
+					item.updatePrice(finder.getNewPrice());
+				}
+				displayItems(itemList);
+				userChoice = getUserChoice(reader);
+			}
+			else if (userChoice == 2) {
+				for (Item item: itemList) {
+					launchWebsite(item);
+				}
+				userChoice = getUserChoice(reader);
+			}
+			else {
+				System.out.println("Not a valid input.");
+				userChoice = getUserChoice(reader);
+			}
+		}
+		reader.close();
+		System.out.println("Thank you for using this program!");
 	}
 
 }

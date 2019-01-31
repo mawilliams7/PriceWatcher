@@ -1,3 +1,8 @@
+/* Mark Williams
+ * CS 3331
+ * 1-30-2019
+ */
+
 package pricewatcher.console;
 
 public class Main {

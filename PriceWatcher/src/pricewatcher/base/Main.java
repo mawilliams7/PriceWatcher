@@ -17,6 +17,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 import pricewatcher.model.Item;
+import pricewatcher.model.PriceFinder;
 
 @SuppressWarnings("serial")
 public class Main extends JFrame {
@@ -28,6 +29,7 @@ public class Main extends JFrame {
     private ItemView itemView;
     
     private List<Item> itemList;
+	private PriceFinder priceFinder;
       
     /** Message bar to display various messages. */
     private JLabel msgBar = new JLabel(" ");
@@ -49,6 +51,7 @@ public class Main extends JFrame {
 		List<Item> testItemList = new ArrayList<Item>();
 		testItemList.add(testItem);
 		this.itemList = testItemList;
+		this.priceFinder = new PriceFinder();
         setSize(dim);
         
         configureUI();
@@ -63,19 +66,18 @@ public class Main extends JFrame {
      * Find the current price of the watched item and display it 
      * along with a percentage price change. */
     private void refreshButtonClicked(ActionEvent event) {
-    	//--
-    	//-- WRITE YOUR CODE HERE!
-    	//--
-    	showMessage("Refresh clicked!");
+    	for (Item item : this.itemList) {
+    		item.updatePrice(this.priceFinder.getNewPrice(item.getURL()));
+    	}
+    	showMessage("All prices updated!");
+    	super.repaint();
     }
     
     /** Callback to be invoked when the view-page icon is clicked.
      * Launch a (default) web browser by supplying the URL of
      * the item. */
     private void viewPageClicked() {    	
-    	//--
-    	//-- WRITE YOUR CODE HERE!
-    	//--
+    	System.out.println("Serendipity");
     	showMessage("View clicked!");
     }
         

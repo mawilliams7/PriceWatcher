@@ -13,7 +13,6 @@ import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 
 import pricewatcher.model.Item;
-import pricewatcher.model.PriceFinder;
 
 /** A special panel to display the detail of an item. */
 
@@ -21,7 +20,6 @@ import pricewatcher.model.PriceFinder;
 public class ItemView extends JPanel {
 	
 	private List<Item> itemList;
-	private PriceFinder priceFinder;
     
 	/** Interface to notify a click on the view page icon. */
 	public interface ClickListener {
@@ -47,7 +45,6 @@ public class ItemView extends JPanel {
             }
         });
         this.itemList = itemList;
-        this.priceFinder = new PriceFinder();
     }
         
     /** Set the view-page click listener. */
@@ -60,8 +57,9 @@ public class ItemView extends JPanel {
 	public void paint(Graphics g) {
         super.paint(g); 
         int x = 20, y = 30;
-        //g.drawImage(getImage("view.png"), x, y);
         for (Item item : this.itemList) {
+        	g.drawImage(getImage("view.png"), x, y, null);
+        	y += 20;
 	        g.drawString("Name: " + item.getName(), x, y);
 	        y += 20;
 	        g.drawString("URL: " + item.getURL(), x, y);
@@ -71,14 +69,13 @@ public class ItemView extends JPanel {
 	        g.drawString("Change: " + item.getPriceChange(), x, y);
 	        y += 20;
 	        g.drawString("Added: " + item.getDateAdded() + "(" + item.getOriginalPrice() + ")", x, y);
-	        
+	        y += 40;
         }
     }
     
     /** Return true if the given screen coordinate is inside the viewPage icon. */
     private boolean isViewPageClicked(int x, int y) {
-    	System.out.println("Serendipity");
-    	return new Rectangle(20, 20, 30, 20).contains(x,  y);
+    	return new Rectangle(20, 30, 30, 20).contains(x,  y);
     }
         
     /** Return the image stored in the given file. */

@@ -2,12 +2,12 @@ package pricewatcher.model;
 
 public class Item {
 
-	public String name;
-	public double originalPrice;
-	public double currentPrice;
-	public double priceChange;
-	public String url;
-	public String dateAdded;
+	private String name;
+	private double originalPrice;
+	private double currentPrice;
+	private double priceChange;
+	private String url;
+	private String dateAdded;
 	
 	public Item(String name, double price, String url, String dateAdded) {
 		this.name = name;
@@ -45,6 +45,30 @@ public class Item {
 	
 	public String getDateAdded() {
 		return this.dateAdded;
+	}
+	
+	public void setOriginalPrice(double originalPrice) {
+		this.originalPrice = originalPrice;
+	}
+	
+	public void setCurrentPrice(double currentPrice) {
+		this.currentPrice = currentPrice;
+	}
+	
+	public void setPriceChange(double priceChange) {
+		this.priceChange = priceChange;
+	}
+	
+	public void setURL(String url) {
+		this.url = url;
+	}
+	
+	public void setName(String name) {
+		this.name = name;
+	}
+	
+	public void setDateAdded(String dateAdded) {
+		this.dateAdded = dateAdded;
 	}
 	
 

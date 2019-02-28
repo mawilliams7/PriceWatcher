@@ -1,6 +1,7 @@
 package pricewatcher.base;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Rectangle;
@@ -56,26 +57,43 @@ public class ItemView extends JPanel {
     @Override
 	public void paint(Graphics g) {
         super.paint(g); 
-        int x = 20, y = 30;
+        int x = 20, y = 20;
         for (Item item : this.itemList) {
-        	g.drawImage(getImage("view.png"), x, y, null);
-        	y += 20;
-	        g.drawString("Name: " + item.getName(), x, y);
+        	g.setFont(new Font("TimesRoman", Font.BOLD, 20));
+        	g.drawImage(getImage("view.jpg"), x, y, null);
+        	y += 45;
+	        g.drawString("Name:      " + item.getName(), x, y);
 	        y += 20;
-	        g.drawString("URL: " + item.getURL(), x, y);
+	        g.setFont(new Font("TimesRoman", Font.PLAIN, 20));
+	        g.drawString("URL:         " + item.getURL(), x, y);
 	        y += 20;
-	        g.drawString("Price: " + item.getCurrentPrice(), x, y);
+	        g.drawString("Price:         ", x, y);
+	        g.setColor(Color.blue);
+	        g.drawString("$" + String.format("%.2f", item.getCurrentPrice()), x + 89, y);
 	        y += 20;
-	        g.drawString("Change: " + item.getPriceChange(), x, y);
+	        g.setColor(Color.BLACK);
+	        g.drawString("Change:      ", x, y);
+	        if(item.getPriceChange() < 0) {
+	        	g.setColor(Color.green);
+	        }
+	          
+	        else if (item.getPriceChange()==0) {
+	        	g.setColor(Color.BLACK);
+	        }
+	        else {
+	        	g.setColor(Color.red);
+	        }
+	        g.drawString(String.format("%.2f", item.getPriceChange()) +"%", x + 99, y);
 	        y += 20;
-	        g.drawString("Added: " + item.getDateAdded() + "(" + item.getOriginalPrice() + ")", x, y);
+	        g.setColor(Color.black);
+	        g.drawString("Added:      " + item.getDateAdded() + " ($" + item.getOriginalPrice() + ")", x, y);
 	        y += 40;
         }
     }
     
     /** Return true if the given screen coordinate is inside the viewPage icon. */
     private boolean isViewPageClicked(int x, int y) {
-    	return new Rectangle(20, 30, 30, 20).contains(x,  y);
+    	return new Rectangle(20, 20, 20, 20).contains(x,  y);
     }
         
     /** Return the image stored in the given file. */

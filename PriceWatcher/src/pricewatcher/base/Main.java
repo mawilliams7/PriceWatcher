@@ -2,13 +2,23 @@ package pricewatcher.base;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -68,17 +78,43 @@ public class Main extends JFrame {
     private void refreshButtonClicked(ActionEvent event) {
     	for (Item item : this.itemList) {
     		item.updatePrice(this.priceFinder.getNewPrice(item.getURL()));
+    		if(item.getPriceChange() < 0) {
+    			alertPriceDropped();
+    		}
     	}
     	showMessage("All prices updated!");
     	super.repaint();
+    }
+    
+    private void alertPriceDropped() {     
+    	try {
+    		// Open an audio input stream.           
+    		File soundFile = new File("/sound/sample.wav"); //you could also get the sound file with an URL
+    		AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);              
+    		// Get a sound clip resource.
+    		Clip clip = AudioSystem.getClip();
+    		// Open audio clip and load samples from the audio input stream.
+    		clip.open(audioIn);
+    		clip.start();
+    	} 
+    	catch (UnsupportedAudioFileException e) {
+    		e.printStackTrace();
+    	} 
+    	catch (IOException e) {
+    		e.printStackTrace();
+    	} 
+    	catch (LineUnavailableException e) {
+    		e.printStackTrace();
+    	}
     }
     
     /** Callback to be invoked when the view-page icon is clicked.
      * Launch a (default) web browser by supplying the URL of
      * the item. */
     private void viewPageClicked() {    	
-    	System.out.println("Serendipity");
-    	showMessage("View clicked!");
+    	for (Item item : this.itemList) {
+    		launchWebsite(item);
+    	}
     }
         
     /** Configure UI. */
@@ -109,6 +145,23 @@ public class Main extends JFrame {
         panel.add(refreshButton);
         return panel;
     }
+    
+	private void launchWebsite(Item item) {
+		/* Launches item web sites in user's default browser*/
+		if (Desktop.isDesktopSupported()) {
+			Desktop desktop = Desktop.getDesktop();
+			try {
+				desktop.browse(new URI(item.getURL()));
+				showMessage("Webpage opened in your default browser.");
+			}
+			catch (IOException | URISyntaxException e) {
+				showMessage("Unable to access webpage for " + item.getName() + ".");
+			}
+		}
+		else {
+			showMessage("Unable to access webpage for " + item.getName() + ".");
+		}
+	}
 
     /** Show briefly the given string in the message bar. */
     private void showMessage(String msg) {
@@ -123,7 +176,7 @@ public class Main extends JFrame {
         	}
         }).start();
     }
-    
+        
     public static void main(String[] args) {
         new Main();
     }

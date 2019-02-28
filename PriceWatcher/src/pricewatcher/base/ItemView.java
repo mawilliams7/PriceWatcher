@@ -61,7 +61,7 @@ public class ItemView extends JPanel {
         for (Item item : this.itemList) {
         	g.setFont(new Font("TimesRoman", Font.BOLD, 20));
         	g.drawImage(getImage("view.jpg"), x, y, null);
-        	y += 45;
+        	y += 50;
 	        g.drawString("Name:      " + item.getName(), x, y);
 	        y += 20;
 	        g.setFont(new Font("TimesRoman", Font.PLAIN, 20));
@@ -87,7 +87,7 @@ public class ItemView extends JPanel {
 	        y += 20;
 	        g.setColor(Color.black);
 	        g.drawString("Added:      " + item.getDateAdded() + " ($" + item.getOriginalPrice() + ")", x, y);
-	        y += 40;
+	        y += 220;
         }
     }
     

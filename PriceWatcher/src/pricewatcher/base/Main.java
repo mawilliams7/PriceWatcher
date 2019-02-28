@@ -33,7 +33,7 @@ import pricewatcher.model.PriceFinder;
 public class Main extends JFrame {
 
     /** Default dimension of the dialog. */
-    private final static Dimension DEFAULT_SIZE = new Dimension(400, 300);
+    private final static Dimension DEFAULT_SIZE = new Dimension(1250, 1000);
       
     /** Special panel to display the watched item. */
     private ItemView itemView;
@@ -89,7 +89,7 @@ public class Main extends JFrame {
     private void alertPriceDropped() {     
     	try {
     		// Open an audio input stream.           
-    		File soundFile = new File("/sound/sample.wav"); //you could also get the sound file with an URL
+    		File soundFile = new File("C:/Users/marka/git/PriceWatcher/PriceWatcher/src/sound/sample.wav"); //you could also get the sound file with an URL
     		AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);              
     		// Get a sound clip resource.
     		Clip clip = AudioSystem.getClip();

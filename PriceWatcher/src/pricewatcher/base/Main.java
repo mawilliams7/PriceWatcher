@@ -1,3 +1,9 @@
+/* Mark Williams
+ * 3-4-2019
+ * CS 3331
+ */
+
+
 package pricewatcher.base;
 
 import java.awt.BorderLayout;
@@ -7,12 +13,9 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
@@ -27,7 +30,6 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 import pricewatcher.model.Item;
-import pricewatcher.model.PriceFinder;
 
 @SuppressWarnings("serial")
 public class Main extends JFrame {
@@ -37,9 +39,6 @@ public class Main extends JFrame {
       
     /** Special panel to display the watched item. */
     private ItemView itemView;
-    
-    private List<Item> itemList;
-	private PriceFinder priceFinder;
       
     /** Message bar to display various messages. */
     private JLabel msgBar = new JLabel(" ");
@@ -51,17 +50,7 @@ public class Main extends JFrame {
     
     /** Create a new dialog of the given screen dimension. */
     public Main(Dimension dim) {
-        super("Price Watcher");
-		String testItemUrl = "https://www.bestbuy.com/site/samsung-ue590-series-28-led-4k-uhd-monitor-black/5484022.p?skuId=5484022";
-		String testItemName = "LED monitor";
-		String testDateAdded = "8/25/18";
-		double testItemInitialPrice = 61.13;
-		
-		Item testItem = new Item(testItemName, testItemInitialPrice, testItemUrl, testDateAdded);
-		List<Item> testItemList = new ArrayList<Item>();
-		testItemList.add(testItem);
-		this.itemList = testItemList;
-		this.priceFinder = new PriceFinder();
+    	super("Price Watcher");
         setSize(dim);
         
         configureUI();
@@ -76,8 +65,8 @@ public class Main extends JFrame {
      * Find the current price of the watched item and display it 
      * along with a percentage price change. */
     private void refreshButtonClicked(ActionEvent event) {
-    	for (Item item : this.itemList) {
-    		item.updatePrice(this.priceFinder.getNewPrice(item.getURL()));
+    	for (Item item : itemView.getItemList()) {
+    		item.updatePrice(itemView.getPriceFinder().getNewPrice(item.getURL()));
     		if(item.getPriceChange() < 0) {
     			alertPriceDropped();
     		}
@@ -89,8 +78,7 @@ public class Main extends JFrame {
     private void alertPriceDropped() {     
     	try {
     		// Open an audio input stream.           
-    		File soundFile = new File("C:/Users/marka/git/PriceWatcher/PriceWatcher/src/sound/sample.wav"); //you could also get the sound file with an URL
-    		AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);              
+    		AudioInputStream audioIn = AudioSystem.getAudioInputStream(getClass().getResource("/sound/sample.wav"));              
     		// Get a sound clip resource.
     		Clip clip = AudioSystem.getClip();
     		// Open audio clip and load samples from the audio input stream.
@@ -112,7 +100,7 @@ public class Main extends JFrame {
      * Launch a (default) web browser by supplying the URL of
      * the item. */
     private void viewPageClicked() {    	
-    	for (Item item : this.itemList) {
+    	for (Item item : itemView.getItemList()) {
     		launchWebsite(item);
     	}
     }
@@ -128,7 +116,7 @@ public class Main extends JFrame {
         		BorderFactory.createEmptyBorder(10,16,0,16),
         		BorderFactory.createLineBorder(Color.GRAY)));
         board.setLayout(new GridLayout(1,1));
-        itemView = new ItemView(this.itemList);
+        itemView = new ItemView();
         itemView.setClickListener(this::viewPageClicked);
         board.add(itemView);
         add(board, BorderLayout.CENTER);

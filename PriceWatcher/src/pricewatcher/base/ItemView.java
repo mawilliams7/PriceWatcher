@@ -9,11 +9,13 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 
 import pricewatcher.model.Item;
+import pricewatcher.model.PriceFinder;
 
 /** A special panel to display the detail of an item. */
 
@@ -21,6 +23,8 @@ import pricewatcher.model.Item;
 public class ItemView extends JPanel {
 	
 	private List<Item> itemList;
+	
+	private PriceFinder priceFinder;
     
 	/** Interface to notify a click on the view page icon. */
 	public interface ClickListener {
@@ -36,7 +40,17 @@ public class ItemView extends JPanel {
     private ClickListener listener;
     
     /** Create a new instance. */
-    public ItemView(List<Item> itemList) {
+    public ItemView() {
+		String testItemUrl = "https://www.bestbuy.com/site/samsung-ue590-series-28-led-4k-uhd-monitor-black/5484022.p?skuId=5484022";
+		String testItemName = "LED monitor";
+		String testDateAdded = "8/25/18";
+		double testItemInitialPrice = 61.13;
+		
+		Item testItem = new Item(testItemName, testItemInitialPrice, testItemUrl, testDateAdded);
+		List<Item> testItemList = new ArrayList<Item>();
+		testItemList.add(testItem);
+		this.itemList = testItemList;
+		this.priceFinder = new PriceFinder();
         setBackground(Color.WHITE);
         addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
@@ -45,7 +59,6 @@ public class ItemView extends JPanel {
             	}
             }
         });
-        this.itemList = itemList;
     }
         
     /** Set the view-page click listener. */
@@ -105,5 +118,12 @@ public class ItemView extends JPanel {
             e.printStackTrace();
         }
         return null;
+    }
+    
+    public List<Item> getItemList() {
+    	return this.itemList;
+    }
+    public PriceFinder getPriceFinder() {
+    	return this.priceFinder;
     }
 }

@@ -47,17 +47,10 @@ public class Item {
 		return this.dateAdded;
 	}
 	
-	public void setOriginalPrice(double originalPrice) {
-		this.originalPrice = originalPrice;
-	}
-	
 	public void setCurrentPrice(double currentPrice) {
 		this.currentPrice = currentPrice;
 	}
 	
-	public void setPriceChange(double priceChange) {
-		this.priceChange = priceChange;
-	}
 	
 	public void setURL(String url) {
 		this.url = url;
@@ -66,10 +59,5 @@ public class Item {
 	public void setName(String name) {
 		this.name = name;
 	}
-	
-	public void setDateAdded(String dateAdded) {
-		this.dateAdded = dateAdded;
-	}
-	
 
 }

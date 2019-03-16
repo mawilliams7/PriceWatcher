@@ -1,12 +1,34 @@
-package pricewatcher.model;
+package pricewatcher.base;
 
+/** An Item for the PriceWatcher
+ *
+ * 
+ */
 public class Item {
-
+	
+	/**
+	 * Name of this item.
+	 */
 	private String name;
+	/**
+	 * Original price of the item.
+	 */
 	private double originalPrice;
+	/**
+	 *  Current price of the item.
+	 */
 	private double currentPrice;
+	/**
+	 * Price change of the item.
+	 */
 	private double priceChange;
+	/**
+	 * URL of the item.
+	 */
 	private String url;
+	/**
+	 * The date the item was added.
+	 */
 	private String dateAdded;
 	
 	public Item(String name, double price, String url, String dateAdded) {
@@ -16,6 +38,9 @@ public class Item {
 		this.url = url;
 		this.priceChange = 0.0;
 		this.dateAdded = dateAdded;
+	}
+	
+	public Item() {
 	}
 	
 	public void updatePrice(double newPrice) {
@@ -47,11 +72,39 @@ public class Item {
 		return this.dateAdded;
 	}
 	
+	public boolean equals(Object obj) {
+		Item comp = (Item) obj;
+		if(!this.name.equals(comp.getName())) {
+			return false;
+		}
+		
+		if(!this.url.equals(comp.getURL())) {
+			return false;
+		}
+		
+		if(!this.dateAdded.equals(comp.getDateAdded())) {
+			return false;
+		}
+		
+		if(!(this.originalPrice == comp.getOriginalPrice())) {
+			return false;
+		}
+		
+		return true;
+	}
+	
 	public void setCurrentPrice(double currentPrice) {
 		this.currentPrice = currentPrice;
 	}
 	
+	public void setOriginalPrice(double newPrice) {
+		this.originalPrice = newPrice;
+	}
 	
+	public void setDateAdded(String dateAdded) {
+		this.dateAdded = dateAdded;
+	}
+
 	public void setURL(String url) {
 		this.url = url;
 	}

@@ -1,4 +1,4 @@
-package pricewatcher.model;
+package pricewatcher.base;
 
 
 public class PriceFinder {

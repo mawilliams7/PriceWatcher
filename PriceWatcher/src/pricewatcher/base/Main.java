@@ -11,25 +11,53 @@ import java.awt.Color;
 import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Graphics;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.GridLayout;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseListener;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
+import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.ButtonGroup;
+import javax.swing.DefaultListModel;
 import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.JToolBar;
+import javax.swing.KeyStroke;
+import javax.swing.ListCellRenderer;
+import javax.swing.ListSelectionModel;
+import javax.swing.Popup;
 import javax.swing.SwingUtilities;
-
-import pricewatcher.model.Item;
 
 @SuppressWarnings("serial")
 public class Main extends JFrame {
@@ -38,7 +66,19 @@ public class Main extends JFrame {
     private final static Dimension DEFAULT_SIZE = new Dimension(1250, 1000);
       
     /** Special panel to display the watched item. */
-    private ItemView itemView;
+    private ItemManager itemManager;
+    
+    private Item selectedItem;
+    
+    private PriceFinder priceFinder;
+
+    private JMenuBar menuBar;
+    
+    private JToolBar toolBar;
+    
+    private DefaultListModel<Item> listModel;
+    
+    private JList<Item> jList;
       
     /** Message bar to display various messages. */
     private JLabel msgBar = new JLabel(" ");
@@ -46,35 +86,31 @@ public class Main extends JFrame {
     /** Create a new dialog. */
     public Main() {
     	this(DEFAULT_SIZE);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setVisible(true);
+        showMessage("Welcome!");
+    	configureUI();
     }
-    
+
     /** Create a new dialog of the given screen dimension. */
     public Main(Dimension dim) {
     	super("Price Watcher");
+    	this.priceFinder = new PriceFinder();
+    	setMenuBar();
+    	setToolBar();
         setSize(dim);
-        
+        initializeItemManager();
+        intializeListModel();
         configureUI();
-        //setLocationRelativeTo(null);
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setVisible(true);
-        //setResizable(false);
-        showMessage("Welcome!");
-    }
-  
-    /** Callback to be invoked when the refresh button is clicked. 
-     * Find the current price of the watched item and display it 
-     * along with a percentage price change. */
-    private void refreshButtonClicked(ActionEvent event) {
-    	for (Item item : itemView.getItemList()) {
-    		item.updatePrice(itemView.getPriceFinder().getNewPrice(item.getURL()));
-    		if(item.getPriceChange() < 0) {
-    			alertPriceDropped();
-    		}
-    	}
-    	showMessage("All prices updated!");
-    	super.repaint();
     }
     
+    private void intializeListModel() {
+        listModel = new DefaultListModel<Item>();
+        for(Item iter: this.itemManager.getAllItems()) {
+        	listModel.addElement(iter);
+        }
+    	
+    }
     private void alertPriceDropped() {     
     	try {
     		// Open an audio input stream.           
@@ -96,15 +132,6 @@ public class Main extends JFrame {
     	}
     }
     
-    /** Callback to be invoked when the view-page icon is clicked.
-     * Launch a (default) web browser by supplying the URL of
-     * the item. */
-    private void viewPageClicked() {    	
-    	for (Item item : itemView.getItemList()) {
-    		launchWebsite(item);
-    	}
-    }
-        
     /** Configure UI. */
     private void configureUI() {
         setLayout(new BorderLayout());
@@ -116,22 +143,211 @@ public class Main extends JFrame {
         		BorderFactory.createEmptyBorder(10,16,0,16),
         		BorderFactory.createLineBorder(Color.GRAY)));
         board.setLayout(new GridLayout(1,1));
-        itemView = new ItemView();
-        itemView.setClickListener(this::viewPageClicked);
-        board.add(itemView);
+        jList = new JList<Item>(listModel);
+        jList.setCellRenderer(new ItemView());
+        MouseListener mouseListener = new MouseAdapter() {
+			public void mouseClicked(MouseEvent mouseEvent) {
+              JList theList = (JList) mouseEvent.getSource();
+              if (SwingUtilities.isRightMouseButton(mouseEvent)) {
+                int index = theList.locationToIndex(mouseEvent.getPoint());
+                if (index >= 0) {
+                  Object o = theList.getModel().getElementAt(index);
+                  Item item = (Item) o;
+                  popUpRequested(item, mouseEvent.getPoint(), index);
+                }
+              }
+            }
+          };
+        jList.addMouseListener(mouseListener);
+        board.add(new JScrollPane(jList));
+        this.setJMenuBar(menuBar);
+        control.add(toolBar);
         add(board, BorderLayout.CENTER);
         msgBar.setBorder(BorderFactory.createEmptyBorder(10,16,10,0));
         add(msgBar, BorderLayout.SOUTH);
+        super.repaint();
     }
+    
+    private void addButtons(JToolBar toolBar) {
+        JButton button = new JButton();
+        button.setActionCommand("Make");
+        button.setToolTipText("Test");
+        toolBar.add(button);
+    }
+    
+    private void setMenuBar() {
+    	menuBar = new JMenuBar();
+
+    	JMenu menu = new JMenu("Item");
+    	menu.setMnemonic(KeyEvent.VK_A);
+    	menu.getAccessibleContext().setAccessibleDescription(
+    	        "The only menu in this program that has menu items");
+    	menuBar.add(menu);
+
+    	//a group of JMenuItems
+    	JMenuItem checkPrices = new JMenuItem("Check prices",
+    	                         KeyEvent.VK_T);
+    	checkPrices.setAccelerator(KeyStroke.getKeyStroke(
+    	        KeyEvent.VK_1, ActionEvent.ALT_MASK));
+    	checkPrices.addActionListener(new ActionListener() { 
+            public void actionPerformed(ActionEvent e) 
+            { 
+            	updateAllPrices();
+            } 
+        });
+    	menu.add(checkPrices);
+    	JMenuItem addItem = new JMenuItem("Add Item",
+		                KeyEvent.VK_T);
+		addItem.setAccelerator(KeyStroke.getKeyStroke(
+				KeyEvent.VK_2, ActionEvent.ALT_MASK));
+		addItem.addActionListener(new ActionListener() { 
+			public void actionPerformed(ActionEvent e) 
+			{ 
+					addItem();
+			} 
+		});
+    	menu.add(addItem);
+    }
+    
+    private void setToolBar() {
+    	toolBar = new JToolBar("Test");
+    	addButtons(toolBar);
+    }
+
+    public void popUpRequested(Item item, Point point, int index) { 
+        JPopupMenu pm = new JPopupMenu();
+        JMenuItem m1 = new JMenuItem("Get Current Price"); 
+        JMenuItem m2 = new JMenuItem("View Webpage"); 
+        JMenuItem m3 = new JMenuItem("Edit Item"); 
+        JMenuItem m4 = new JMenuItem("Remove Item");
+        pm.add(m1); 
+        pm.add(m2); 
+        pm.add(m3); 
+        pm.add(m4);
+        
+        m1.addActionListener(new ActionListener() { 
+            public void actionPerformed(ActionEvent e) 
+            { 
+            	updatePrice(item);
+            } 
+        }); 
+  
+        m2.addActionListener(new ActionListener() { 
+            public void actionPerformed(ActionEvent e) 
+            { 
+            	launchWebsite(item);
+            } 
+        }); 
+  
+        m3.addActionListener(new ActionListener() { 
+            public void actionPerformed(ActionEvent e) 
+            { 
+               editItem(item);
+            } 
+        });
+        
+        m4.addActionListener(new ActionListener() { 
+            public void actionPerformed(ActionEvent e) 
+            { 
+                removeItem(item, index);
+            } 
+        }); 
+        pm.show(this, point.x, point.y); 
+    } 
       
     /** Create a control panel consisting of a refresh button. */
     private JPanel makeControlPanel() {
     	JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEADING));
-    	JButton refreshButton = new JButton("Refresh");
-    	refreshButton.setFocusPainted(false);
-        refreshButton.addActionListener(this::refreshButtonClicked);
-        panel.add(refreshButton);
         return panel;
+    }
+    
+    private void updatePrice(Item item) {
+    	item.updatePrice(this.priceFinder.getNewPrice(item.getURL()));
+    	if(item.getPriceChange() < 0) {
+    		alertPriceDropped();
+    	}
+    }
+    
+    private void addItem() {
+        JTextField itemNameField = new JTextField(10);
+        JTextField itemURLField = new JTextField(10);
+        JTextField itemPriceField = new JTextField(10);
+        JTextField itemDateAddedField = new JTextField(getCurrentDate());
+
+        JPanel myPanel = new JPanel();
+        myPanel.add(new JLabel("New item name:"));
+        myPanel.add(itemNameField);
+        myPanel.add(Box.createVerticalStrut(30));
+        myPanel.add(new JLabel("new item URL:"));
+        myPanel.add(itemURLField);
+        myPanel.add(Box.createVerticalStrut(30));
+        myPanel.add(new JLabel("New item price:"));
+        myPanel.add(itemPriceField);
+        myPanel.add(Box.createVerticalStrut(30));
+        myPanel.add(new JLabel("New date added:"));
+        myPanel.add(itemDateAddedField);
+        add(myPanel);
+        int result = JOptionPane.showConfirmDialog(null, myPanel, 
+                "Enter edits", JOptionPane.OK_CANCEL_OPTION);
+        if (result == JOptionPane.OK_OPTION) {
+        	Item newItem = new Item();
+        	newItem.setName(itemNameField.getText());
+        	newItem.setURL(itemURLField.getText());
+        	newItem.setOriginalPrice(Double.parseDouble(itemPriceField.getText()));
+        	newItem.setCurrentPrice(Double.parseDouble(itemPriceField.getText()));
+        	newItem.setDateAdded(itemDateAddedField.getText());
+        	this.itemManager.addItem(newItem);
+        	for(Item iter: this.itemManager.getAllItems()) {
+        		System.out.println(iter.getName());
+        	}
+        	listModel.addElement(newItem);
+        	super.repaint();
+        }
+    }
+    
+    private String getCurrentDate() {
+    	DateTimeFormatter dtf = DateTimeFormatter.ofPattern("MM/dd/yyyy");  
+    	LocalDateTime now = LocalDateTime.now();
+    	return dtf.format(now);
+    	
+    }
+    
+    private void updateAllPrices() {
+    	for(Item iter: this.itemManager.getAllItems()) {
+    		iter.updatePrice(this.priceFinder.getNewPrice(iter.getURL()));
+        	if(iter.getPriceChange() < 0) {
+        		alertPriceDropped();
+        	}
+    	}
+    	super.repaint();
+    }
+    
+    private void removeItem(Item item, int index) {
+    	itemManager.removeItem(item);
+        if (listModel.size() > 0) {
+        	listModel.remove(index);
+        }
+        super.repaint();
+    }
+    
+    private void editItem(Item item) {
+        JTextField itemNameField = new JTextField(item.getName());
+        JTextField itemURLField = new JTextField(item.getURL());
+
+        JPanel myPanel = new JPanel();
+        myPanel.add(new JLabel("Item name:"));
+        myPanel.add(itemNameField);
+        myPanel.add(Box.createVerticalStrut(30));
+        myPanel.add(new JLabel("Item URL:"));
+        myPanel.add(itemURLField);
+        add(myPanel);
+        int result = JOptionPane.showConfirmDialog(null, myPanel, 
+                "Enter edits", JOptionPane.OK_CANCEL_OPTION);
+        if (result == JOptionPane.OK_OPTION) {
+        	item.setName(itemNameField.getText());
+        	item.setURL(itemURLField.getText());
+        }
+        super.repaint();
     }
     
 	private void launchWebsite(Item item) {
@@ -164,9 +380,16 @@ public class Main extends JFrame {
         	}
         }).start();
     }
+    
+    private void initializeItemManager() {
+    	this.itemManager = new ItemManager();
+    	itemManager.addItem(new Item("LED monitor", 61.13, "https://www.bestbuy.com/site/samsung-ue590-series-28-led-4k-uhd-monitor-black/5484022.p?skuId=5484022", "8/25/18"));
+    	itemManager.addItem(new Item("Fire TV Edition", 129.99, "https://www.bestbuy.com/site/toshiba-32-class-led-720p-smart-hdtv-fire-tv-edition/6211003.p?skuId=6211003", "9/11/12"));
+    	itemManager.addItem(new Item("Test", 129.99, "https://www.bestbuy.com/site/toshiba-32-class-led-720p-smart-hdtv-fire-tv-edition/6211003.p?skuId=6211003", "9/11/12"));
+    }
         
     public static void main(String[] args) {
-        new Main();
+    	new Main();
     }
 
 }

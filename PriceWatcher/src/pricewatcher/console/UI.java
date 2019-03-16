@@ -9,8 +9,8 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.InputMismatchException;
 
-import pricewatcher.model.Item;
-import pricewatcher.model.PriceFinder;
+import pricewatcher.base.Item;
+import pricewatcher.base.PriceFinder;
 
 public class UI {
 

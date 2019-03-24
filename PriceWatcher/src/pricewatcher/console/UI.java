@@ -83,7 +83,12 @@ public class UI {
 			if (userChoice == 1) {
 				for (Item item: itemList) {
 					PriceFinder finder = new PriceFinder();
-					item.updatePrice(finder.getNewPrice(item.getURL()));
+					try {
+						item.updatePrice(finder.getNewPrice(item));
+					}
+					catch(Exception e) {
+						
+					}
 				}
 				displayItems(itemList);
 				userChoice = getUserChoice(reader);

@@ -1,5 +1,10 @@
 package pricewatcher.base;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.json.JSONObject;
+
 /** An Item for the PriceWatcher
  *
  * 
@@ -112,6 +117,16 @@ public class Item {
 	
 	public void setName(String name) {
 		this.name = name;
+	}
+	
+	public JSONObject toJSON() {
+	    Map<String, Object> map = new HashMap<>();
+	    map.put("name", getName());
+	    map.put("currentPrice", getCurrentPrice());
+	    map.put("priceChange", getPriceChange());
+	    map.put("dateAdded", getDateAdded());
+	    map.put("url", getURL());
+	    return new JSONObject(map);
 	}
 
 }

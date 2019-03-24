@@ -85,7 +85,7 @@ public class Main extends JFrame {
     /** Create a new dialog of the given screen dimension. */
     public Main(Dimension dim) {
     	super("Price Watcher");
-    	this.priceFinder = new PriceFinder();
+    	this.priceFinder = new WebPriceFinder();
     	try {
     		setMenuBar();  
     	}
@@ -373,11 +373,16 @@ public class Main extends JFrame {
     }
     
     private void updatePrice(Item item) {
-    	item.updatePrice(this.priceFinder.getNewPrice(item.getURL()));
-    	if(item.getPriceChange() < 0) {
-    		alertPriceDropped();
+    	try {
+	    	item.updatePrice(this.priceFinder.getNewPrice(item));
+	    	if(item.getPriceChange() < 0) {
+	    		alertPriceDropped();
+	    	}
+	    	super.repaint();
     	}
-    	super.repaint();
+    	catch (Exception e){
+    		showMessage("Unable to update price.");
+    	}
     }
     
     private void addItem() {
@@ -427,10 +432,15 @@ public class Main extends JFrame {
     private void updateAllPrices() {
     	boolean priceDropped = false;
     	for(Item iter: this.itemManager.getAllItems()) {
-    		iter.updatePrice(this.priceFinder.getNewPrice(iter.getURL()));
-        	if(iter.getPriceChange() < 0) {
-        		priceDropped = true;
-        	}
+    		try {
+	    		iter.updatePrice(this.priceFinder.getNewPrice(iter));
+	        	if(iter.getPriceChange() < 0) {
+	        		priceDropped = true;
+	        	}
+    		}
+	        catch (Exception e){
+	        	
+	        }
     	}
     	if(priceDropped) {
     		alertPriceDropped();
@@ -502,9 +512,10 @@ public class Main extends JFrame {
     }
     
     private void initializeItemManager() {
-    	this.itemManager = new ItemManager();
-    	itemManager.addItem(new Item("LED monitor", 61.13, "https://www.bestbuy.com/site/samsung-ue590-series-28-led-4k-uhd-monitor-black/5484022.p?skuId=5484022", "8/25/18"));
-    	itemManager.addItem(new Item("Fire TV Edition", 129.99, "https://www.bestbuy.com/site/toshiba-32-class-led-720p-smart-hdtv-fire-tv-edition/6211003.p?skuId=6211003", "9/11/12"));
+    	this.itemManager = new FileItemManager();
+    	itemManager.addItem(new Item("Nerf Gun", 61.13, "https://www.walmart.com/ip/Nerf-Fortnite-AR-L-Nerf-Elite-Dart-Blaster-with-6-Nerf-Elite-Darts/354326531?athcpid=354326531&athpgid=athenaHomepage&athcgid=null&athznid=CC_Trending&athieid=&athstid=CS031&athguid=466001f5-46cfa622-9f64329c9a18a716&athena=true", "8/25/18"));
+    	itemManager.addItem(new Item("Electric Winch", 129.99, "https://www.ebay.com/itm/X-BULL-12000LBS-Electric-Winch-12V-Towing-Truck-Trailer-Steel-Cable-Off-Road/332129189141?epid=676396295&hash=item4d54713d15:g:HmQAAOSwakxcRrdB", "9/11/12"));
+    	itemManager.addItem(new Item("Acoustic Guitar", 129.99, "https://www.amazon.com/gp/product/B01K18HFOY?pf_rd_p=1cac67ce-697a-47be-b2f5-9ae91aab54f2&pf_rd_r=8RYM75MMBQ3ENKHF28MQ", "9/11/12"));
     }
         
     public static void main(String[] args) {

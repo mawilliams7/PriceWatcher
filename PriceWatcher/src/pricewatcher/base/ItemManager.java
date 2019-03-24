@@ -3,7 +3,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ItemManager {
-	public List<Item> items;
+	private List<Item> items;
 	
 	public ItemManager() {
 		this.items = new ArrayList<Item>();

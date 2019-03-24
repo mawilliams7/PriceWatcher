@@ -5,10 +5,6 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.Image;
-import java.io.IOException;
-import java.net.URL;
-import javax.imageio.ImageIO;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.ListCellRenderer;
@@ -19,10 +15,7 @@ import javax.swing.ListCellRenderer;
 public class ItemView extends JPanel implements ListCellRenderer<Item>{
 	
 	private Item item;
-	
-	/** Directory for image files: src/image in Eclipse. */
-	private final static String IMAGE_DIR = "/image/";
-        
+
     /** Create a new instance. */
     public ItemView() {
     	Dimension size = getSize();
@@ -77,17 +70,6 @@ public class ItemView extends JPanel implements ListCellRenderer<Item>{
         }
 		return this;
 	}
-    
-    /** Return the image stored in the given file. */
-    public Image getImage(String file) {
-        try {
-        	URL url = new URL(getClass().getResource(IMAGE_DIR), file);
-            return ImageIO.read(url);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
     
     public Item getItem() {
     	return this.item;

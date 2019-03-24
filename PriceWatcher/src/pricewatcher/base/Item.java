@@ -72,6 +72,7 @@ public class Item {
 		return this.dateAdded;
 	}
 	
+	@Override
 	public boolean equals(Object obj) {
 		Item comp = (Item) obj;
 		if(!this.name.equals(comp.getName())) {

@@ -14,12 +14,12 @@ public class FileItemManager extends ItemManager{
 	public void addItem(Item item) {
 		super.addItem(item);
 		try{
-			String filename = "/PriceWatcher/src/storage/" + item.getURL().replaceAll("/", "") + ".json";
+			String filename = "/storage/" + item.getName().replaceAll(" ", "-") + ".json";
 			System.out.println(filename);
 			File file = new File(filename);
-			System.out.println("Serendipity");
 			file.createNewFile();
-			writer = new FileWriter(file);
+			System.out.println("serendipity");
+			writer = new FileWriter(filename);
 			writer.write((item.toJSON()).toString());
 			writer.close();
 		}

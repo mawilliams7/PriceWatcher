@@ -21,4 +21,7 @@ public class ItemManager {
 		return this.items;
 	}
 	
+	public void updateItem(Item item) {
+		
+	}
 }

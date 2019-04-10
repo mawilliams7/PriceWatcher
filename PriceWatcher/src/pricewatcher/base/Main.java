@@ -48,27 +48,35 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
 @SuppressWarnings("serial")
 public class Main extends JFrame {
 
-    /** Default dimension of the dialog. */
-    private final static Dimension DEFAULT_SIZE = new Dimension(1250, 1000);
+    /** Default dimension of the GUI. */
+    private final static Dimension DEFAULT_SIZE = new Dimension(2000, 2000);
       
-    /** Special panel to display the watched item. */
-    private ItemManager itemManager;
+    /** Item Manager for the GUI. */
+    private FileItemManager itemManager;
     
+    /** Item that the user is currently selecting. */
     private Item selectedItem;
     
+    /** Price Finder for the items.*/
     private PriceFinder priceFinder;
-
+    
+    /** Menu bar for the GUI. */
     private JMenuBar menuBar;
     
+    /** The list model for the JList. */
     private DefaultListModel<Item> listModel;
     
+    /** The JList for the GUI. */
     private JList<Item> jList;
+    
+    private JToolBar toolBar;
       
     /** Message bar to display various messages. */
     private JLabel msgBar = new JLabel(" ");
@@ -78,14 +86,17 @@ public class Main extends JFrame {
     	this(DEFAULT_SIZE);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setVisible(true);
+        setResizable(true);
         showMessage("Welcome!");
-    	configureUI();
     }
 
-    /** Create a new dialog of the given screen dimension. */
+    /** Create a new dialog of the given screen dimension. 
+     * @param dim The dimension of the screen the GUI is being displayed on
+     * */
     public Main(Dimension dim) {
     	super("Price Watcher");
-    	this.priceFinder = new WebPriceFinder();
+    	System.out.println("S");
+    	this.priceFinder = new PriceFinder();
     	try {
     		setMenuBar();  
     	}
@@ -93,11 +104,13 @@ public class Main extends JFrame {
     		
     	}
         setSize(dim);
+        setResizable(true);
         initializeItemManager();
         intializeListModel();
         configureUI();
     }
-    
+    /** Initializes the list model using the Item Manager. 
+     * */
     private void intializeListModel() {
         listModel = new DefaultListModel<Item>();
         for(Item iter: this.itemManager.getAllItems()) {
@@ -105,6 +118,8 @@ public class Main extends JFrame {
         }
     	
     }
+    /** Uses an audio clip to alert the user if a price of an item has dropped. 
+     * */
     private void alertPriceDropped() {     
     	try {
     		// Open an audio input stream.           
@@ -126,19 +141,19 @@ public class Main extends JFrame {
     	}
     }
     
-    /** Configure UI. */
+    /** Configures UI for the GUI. */
     private void configureUI() {
         setLayout(new BorderLayout());
-        JPanel control = new JPanel();
+        JToolBar toolBar = new JToolBar();
         try {
-        	control = makeControlPanel();
+        	toolBar = makeToolBar();
         }
         catch(IOException e) {
         	
         }
         //control.add(toolBar);
-        control.setBorder(BorderFactory.createEmptyBorder(10,16,0,16)); 
-        add(control, BorderLayout.NORTH);
+        toolBar.setBorder(BorderFactory.createEmptyBorder(10,16,0,16)); 
+        add(toolBar, BorderLayout.NORTH);
         JPanel board = new JPanel();
         board.setBorder(BorderFactory.createCompoundBorder(
         		BorderFactory.createEmptyBorder(10,16,0,16),
@@ -181,6 +196,9 @@ public class Main extends JFrame {
         super.repaint();
     }
     
+    /** Populates the menu bar for the GUI. 
+     * @throws IOException
+     * */
     private void setMenuBar() throws IOException {
     	menuBar = new JMenuBar();
 
@@ -190,33 +208,28 @@ public class Main extends JFrame {
     	        "The only menu in this program that has menu items");
     	menuBar.add(menu);
 
-    	//a group of JMenuItems
+    	//A group of JMenuItems
     	JMenuItem checkPrices = new JMenuItem("Check prices",
     	                         KeyEvent.VK_T);
     	checkPrices.setAccelerator(KeyStroke.getKeyStroke(
     	        KeyEvent.VK_1, ActionEvent.ALT_MASK));
-    	checkPrices.addActionListener(new ActionListener() { 
-            public void actionPerformed(ActionEvent e) 
-            { 
-            	updateAllPrices();
-            } 
-        });
+    	checkPrices.addActionListener(e ->updateAllPrices());
     	checkPrices.setIcon(new ImageIcon(ImageIO.read(getClass().getResourceAsStream("/image/update.png")).getScaledInstance(20, 20, Image.SCALE_SMOOTH)));
     	menu.add(checkPrices);
+    	
     	JMenuItem addItem = new JMenuItem("Add Item",
 		                KeyEvent.VK_T);
 		addItem.setAccelerator(KeyStroke.getKeyStroke(
 				KeyEvent.VK_2, ActionEvent.ALT_MASK));
-		addItem.addActionListener(new ActionListener() { 
-			public void actionPerformed(ActionEvent e) 
-			{ 
-					addItem();
-			} 
-		});
+		addItem.addActionListener(e ->addItem());
 		addItem.setIcon(new ImageIcon(ImageIO.read(getClass().getResourceAsStream("/image/add.png")).getScaledInstance(20, 20, Image.SCALE_SMOOTH)));
     	menu.add(addItem);
     }
     
+    /** Handles pop-ups for the user. 
+     * @param item The item that is being selected
+     * @param poin The point where the user requested the pop-up
+     * */
     public void popUpRequested(Item item, Point point) throws IOException { 
         JPopupMenu pm = new JPopupMenu();
         JMenuItem m1 = new JMenuItem("Get Current Price");
@@ -231,111 +244,66 @@ public class Main extends JFrame {
         pm.add(m2); 
         pm.add(m3);  
         pm.add(m4);
-        
-        m1.addActionListener(new ActionListener() { 
-            public void actionPerformed(ActionEvent e) 
-            { 
-            	updatePrice(item);
-            } 
-        }); 
-  
-        m2.addActionListener(new ActionListener() { 
-            public void actionPerformed(ActionEvent e) 
-            { 
-            	launchWebsite(item);
-            } 
-        }); 
-  
-        m3.addActionListener(new ActionListener() { 
-            public void actionPerformed(ActionEvent e) 
-            { 
-               editItem(item);
-            } 
-        });
-        
-        m4.addActionListener(new ActionListener() { 
-            public void actionPerformed(ActionEvent e) 
-            { 
-                removeItem(item);
-            } 
-        }); 
+        // Adds actions listeners to JMenuItems
+        m1.addActionListener(e -> updatePrice(item)); 
+        m2.addActionListener(e -> launchWebsite(item)); 
+        m3.addActionListener(e -> editItem(item));
+        m4.addActionListener(e -> removeItem(item)); 
         pm.show(this, point.x, point.y); 
     } 
       
     /** Create a control panel consisting of a refresh button. 
      * @throws IOException */
-    private JPanel makeControlPanel() throws IOException {
-    	JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    private JToolBar makeToolBar() throws IOException {
+    	JToolBar panel = new JToolBar();
+    	// Creates the buttons for the tool bar
         JButton allPrices = new JButton();
         allPrices.setToolTipText("Update all prices");
         allPrices.setIcon(new ImageIcon(ImageIO.read(getClass().getResourceAsStream("/image/update.png")).getScaledInstance(20, 20, Image.SCALE_SMOOTH)));
-        allPrices.addActionListener(new ActionListener() { 
-            public void actionPerformed(ActionEvent e) 
-            { 
-            	updateAllPrices();
-            } 
-        });
+        allPrices.addActionListener(e -> updateAllPrices());
         allPrices.setFocusPainted(false);
         panel.add(allPrices);
+        
         JButton addItem = new JButton();
         addItem.setToolTipText("Add an item");
         addItem.setIcon(new ImageIcon(ImageIO.read(getClass().getResourceAsStream("/image/add.png")).getScaledInstance(20, 20, Image.SCALE_SMOOTH)));
-        addItem.addActionListener(new ActionListener() { 
-            public void actionPerformed(ActionEvent e) 
-            { 
-            	addItem();
-            } 
-        });
+        addItem.addActionListener(e -> addItem());
         addItem.setFocusPainted(false);
         panel.add(addItem);
         panel.add(Box.createHorizontalStrut(100));
+        
         JButton updatePrice = new JButton();
         updatePrice.setToolTipText("Update Price of Selected Item");
         updatePrice.setIcon(new ImageIcon(ImageIO.read(getClass().getResourceAsStream("/image/update.png")).getScaledInstance(20, 20, Image.SCALE_SMOOTH)));
-        updatePrice.addActionListener(new ActionListener() { 
-            public void actionPerformed(ActionEvent e) 
-            { 
-            	updatePriceOfSelectedItem();
-            } 
-        });
+        updatePrice.addActionListener(e -> updatePriceOfSelectedItem());
         updatePrice.setFocusPainted(false);
         panel.add(updatePrice);
+        
         JButton accessWebpage = new JButton();
         accessWebpage.setToolTipText("Access webpage of Selected Item");
         accessWebpage.setIcon(new ImageIcon(ImageIO.read(getClass().getResourceAsStream("/image/view.jpg")).getScaledInstance(20, 20, Image.SCALE_SMOOTH)));
-        accessWebpage.addActionListener(new ActionListener() { 
-            public void actionPerformed(ActionEvent e) 
-            { 
-            	launchWebsiteOfSelectedItem();
-            } 
-        });
+        accessWebpage.addActionListener(e -> launchWebsiteOfSelectedItem());
         accessWebpage.setFocusPainted(false);
         panel.add(accessWebpage);
+        
         JButton editItem = new JButton();
         editItem.setToolTipText("Edit Selected Item");
         editItem.setIcon(new ImageIcon(ImageIO.read(getClass().getResourceAsStream("/image/edit.png")).getScaledInstance(20, 20, Image.SCALE_SMOOTH)));
-        editItem.addActionListener(new ActionListener() { 
-            public void actionPerformed(ActionEvent e) 
-            { 
-            	editSelectedItem();
-            } 
-        });
+        editItem.addActionListener(e -> editSelectedItem());
         editItem.setFocusPainted(false);
         panel.add(editItem);
+        
         JButton removeItem = new JButton();
         removeItem.setToolTipText("Remove Selected Item");
         removeItem.setIcon(new ImageIcon(ImageIO.read(getClass().getResourceAsStream("/image/remove.png")).getScaledInstance(20, 20, Image.SCALE_SMOOTH)));
-        removeItem.addActionListener(new ActionListener() { 
-            public void actionPerformed(ActionEvent e) 
-            { 
-            	removeSelectedItem();
-            } 
-        });
+        removeItem.addActionListener(e -> removeSelectedItem());
         removeItem.setFocusPainted(false);
         panel.add(removeItem);
         return panel;
     }
     
+    /** Updates price of selected item. 
+     * */
     private void updatePriceOfSelectedItem(){
     	if(selectedItem != null) {
     		updatePrice(selectedItem);
@@ -345,6 +313,8 @@ public class Main extends JFrame {
     	}
     }
     
+    /** Launches website of selected item.
+     * */
     private void launchWebsiteOfSelectedItem(){
     	if(selectedItem != null) {
     		launchWebsite(selectedItem);
@@ -354,6 +324,8 @@ public class Main extends JFrame {
     	}
     }
     
+    /** Allows user to edit selected item.
+     * */
     private void editSelectedItem(){
     	if(selectedItem != null) {
     		editItem(selectedItem);
@@ -363,6 +335,8 @@ public class Main extends JFrame {
     	}
     }
     
+    /** Allows user to remove selected item.
+     * */
     private void removeSelectedItem(){
     	if(selectedItem != null) {
     		removeItem(selectedItem);
@@ -371,7 +345,9 @@ public class Main extends JFrame {
     		showMessage("No item selected.");
     	}
     }
-    
+    /** Updates the price of an item.
+     * @param item The item to be updated
+     * */
     private void updatePrice(Item item) {
     	try {
 	    	item.updatePrice(this.priceFinder.getNewPrice(item));
@@ -385,6 +361,8 @@ public class Main extends JFrame {
     	}
     }
     
+    /** Adds item based on user input.
+     * */
     private void addItem() {
         JTextField itemNameField = new JTextField(10);
         JTextField itemURLField = new JTextField(10);
@@ -414,14 +392,13 @@ public class Main extends JFrame {
         	newItem.setCurrentPrice(Double.parseDouble(itemPriceField.getText()));
         	newItem.setDateAdded(itemDateAddedField.getText());
         	this.itemManager.addItem(newItem);
-        	for(Item iter: this.itemManager.getAllItems()) {
-        		System.out.println(iter.getName());
-        	}
         	listModel.addElement(newItem);
         	super.repaint();
         }
     }
     
+    /** Gets the current date
+     * */
     private String getCurrentDate() {
     	DateTimeFormatter dtf = DateTimeFormatter.ofPattern("MM/dd/yyyy");  
     	LocalDateTime now = LocalDateTime.now();
@@ -429,6 +406,8 @@ public class Main extends JFrame {
     	
     }
     
+    /** Updates the prices of all the items.
+     * */
     private void updateAllPrices() {
     	boolean priceDropped = false;
     	for(Item iter: this.itemManager.getAllItems()) {
@@ -448,6 +427,9 @@ public class Main extends JFrame {
     	super.repaint();
     }   
     
+    /** Launches website of selected item.
+     * @param item The item to be removed
+     * */
     private void removeItem(Item item) {
     	itemManager.removeItem(item);
         if (listModel.size() > 0) {
@@ -455,8 +437,11 @@ public class Main extends JFrame {
         }
         super.repaint();
     }
-    
+    /** Allows the user to edit an item.
+     * @param item The item to be edited
+     * */
     private void editItem(Item item) {
+    	itemManager.deleteItemFile(item);
         JTextField itemNameField = new JTextField(item.getName());
         JTextField itemURLField = new JTextField(item.getURL());
 
@@ -473,9 +458,12 @@ public class Main extends JFrame {
         	item.setName(itemNameField.getText());
         	item.setURL(itemURLField.getText());
         }
+        this.itemManager.updateItem(item);
         super.repaint();
     }
-    
+    /** Launches website of an item.
+     * @param item The item whose website the user wants to go to
+     * */
 	private void launchWebsite(Item item) {
 		/* Launches item web sites in user's default browser*/
 		if (Desktop.isDesktopSupported()) {
@@ -493,7 +481,9 @@ public class Main extends JFrame {
 		}
 	}
 
-    /** Show briefly the given string in the message bar. */
+    /** Show briefly the given string in the message bar. 
+     * @param msg The message to be displayed
+     * */
     private void showMessage(String msg) {
         msgBar.setText(msg);
         new Thread(() -> {
@@ -507,17 +497,19 @@ public class Main extends JFrame {
         }).start();
     }
     
+    /** Sets the selected item
+     * @item item The item the user has selected
+     * */
     public void setSelectedItem(Item item) {
     	this.selectedItem = item;
     }
     
+    /** Initializes the item manager
+     * */
     private void initializeItemManager() {
     	this.itemManager = new FileItemManager();
-    	itemManager.addItem(new Item("Nerf Gun", 61.13, "https://www.walmart.com/ip/Nerf-Fortnite-AR-L-Nerf-Elite-Dart-Blaster-with-6-Nerf-Elite-Darts/354326531?athcpid=354326531&athpgid=athenaHomepage&athcgid=null&athznid=CC_Trending&athieid=&athstid=CS031&athguid=466001f5-46cfa622-9f64329c9a18a716&athena=true", "8/25/18"));
-    	itemManager.addItem(new Item("Electric Winch", 129.99, "https://www.ebay.com/itm/X-BULL-12000LBS-Electric-Winch-12V-Towing-Truck-Trailer-Steel-Cable-Off-Road/332129189141?epid=676396295&hash=item4d54713d15:g:HmQAAOSwakxcRrdB", "9/11/12"));
-    	itemManager.addItem(new Item("Acoustic Guitar", 129.99, "https://www.amazon.com/gp/product/B01K18HFOY?pf_rd_p=1cac67ce-697a-47be-b2f5-9ae91aab54f2&pf_rd_r=8RYM75MMBQ3ENKHF28MQ", "9/11/12"));
     }
-        
+    
     public static void main(String[] args) {
     	new Main();
     }

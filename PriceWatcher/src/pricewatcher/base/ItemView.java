@@ -4,7 +4,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.Graphics;
+import java.awt.Graphics; 
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.ListCellRenderer;
@@ -54,7 +54,7 @@ public class ItemView extends JPanel implements ListCellRenderer<Item>{
         g.drawString(String.format("%.2f", item.getPriceChange()) +"%", x + 99, y);
         y += 20;
         g.setColor(Color.black);
-        g.drawString("Added:      " + item.getDateAdded() + " ($" + item.getOriginalPrice() + ")", x, y);
+        g.drawString("Added:      " + item.getDateAdded() + " ($" + String.format("%.2f", Double.toString(item.getOriginalPrice())) + ")", x, y);
     }
     
     @Override

@@ -121,11 +121,11 @@ public class Item {
 	
 	public JSONObject toJSON() {
 	    Map<String, Object> map = new HashMap<>();
-	    map.put("name", getName());
-	    map.put("currentPrice", getCurrentPrice());
-	    map.put("priceChange", getPriceChange());
-	    map.put("dateAdded", getDateAdded());
-	    map.put("url", getURL());
+	    map.put("name", name);
+	    map.put("currentPrice", currentPrice);
+	    map.put("originalPrice", originalPrice);
+	    map.put("dateAdded", dateAdded);
+	    map.put("url", url);
 	    return new JSONObject(map);
 	}
 

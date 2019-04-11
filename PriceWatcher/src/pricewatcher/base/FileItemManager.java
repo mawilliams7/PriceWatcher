@@ -5,18 +5,21 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
 public class FileItemManager extends ItemManager{
+	/** The file writer for the FileItemManager */
 	private FileWriter writer;
-
+	/** The constructor for the FileItemManager. */
 	public FileItemManager() {
 		loadItems();
 	}
 	
 	@Override
+	/** Adds an item to the item manager. 
+	 * @param item The item to be added
+	 * */
 	public void addItem(Item item) {
 		super.addItem(item);
 		try{
@@ -28,6 +31,9 @@ public class FileItemManager extends ItemManager{
 	    
 	}
 	
+	/** Updates an item in the item manager. 
+	 * @param item The item to be updated
+	 * */
 	public void updateItem(Item item) {
 		try{
 			writeItem(item);
@@ -38,16 +44,24 @@ public class FileItemManager extends ItemManager{
 	}
 	
 	@Override
+	/** Removes an item from the item manager. 
+	 * @param item The item to be removed
+	 * */
 	public void removeItem(Item item) {
 		super.removeItem(item);
 		deleteItemFile(item);
 	}
 	
+	/** Removes an item file from storage. 
+	 * @param item The item to be removed from storage
+	 * */
 	public void deleteItemFile(Item item){
 		File file = new File("src/storage/" + item.getName().replaceAll(" ", "-") + ".json");
 		file.delete();
 	}
 	
+	/** Loads in items to manager from item files. 
+	 * */
 	public void loadItems() {
 		File folder = new File("src/storage/");
 		for(File file : folder.listFiles()) {
@@ -57,6 +71,10 @@ public class FileItemManager extends ItemManager{
 		}
 	}
 	
+	/** Reads an item from an item file. 
+	 * @param file The file to be read
+	 * @return The item read form the file or null if there was an error
+	 * */
 	public Item readItemFromFile(File file) {
 		 try {
 			 JSONTokener parser = new JSONTokener(new FileReader(file));
@@ -71,9 +89,12 @@ public class FileItemManager extends ItemManager{
 		 }
 	}
 	
+	/** Writes an item to an item file.
+	 * @param item The item that will be written to a file
+	 * @throws IOExcpetion
+	 * */
 	public void writeItem(Item item) throws IOException {
 		String filename = "src/storage/" + item.getName().replaceAll(" ", "-") + ".json";
-		System.out.println(filename);
 		File file = new File(filename);
 		file.createNewFile();
 		writer = new FileWriter(filename);
@@ -81,6 +102,9 @@ public class FileItemManager extends ItemManager{
 		writer.close();
 	}
 	
+	/** Parses an item from a JSONObject 
+	 * @param obj The JSONObject to be parsed
+	 * */
 	public Item fromJSON(JSONObject obj) {
 		try {
 			String name = obj.getString("name");

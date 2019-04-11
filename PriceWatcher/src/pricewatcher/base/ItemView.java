@@ -14,6 +14,7 @@ import javax.swing.ListCellRenderer;
 @SuppressWarnings("serial")
 public class ItemView extends JPanel implements ListCellRenderer<Item>{
 	
+	/** The item currently being used by the ItemView. */
 	private Item item;
 
     /** Create a new instance. */
@@ -23,7 +24,9 @@ public class ItemView extends JPanel implements ListCellRenderer<Item>{
     	this.setPreferredSize(new Dimension(size.width, 160));
     }
 
-    /** Overridden here to display the details of the item. */
+    /** Overridden here to display the details of the item. 
+     * @param g The graphics object used to paint items
+     * */
     @Override
 	public void paint(Graphics g) {
     	super.paint(g);
@@ -54,10 +57,18 @@ public class ItemView extends JPanel implements ListCellRenderer<Item>{
         g.drawString(String.format("%.2f", item.getPriceChange()) +"%", x + 99, y);
         y += 20;
         g.setColor(Color.black);
-        g.drawString("Added:      " + item.getDateAdded() + " ($" + String.format("%.2f", Double.toString(item.getOriginalPrice())) + ")", x, y);
+        g.drawString("Added:      " + item.getDateAdded() + " ($" + String.format("%.2f", item.getOriginalPrice()) + ")", x, y);
     }
     
     @Override
+    /** Overridden here to display the details of the item. 
+     * @param list The JList that contains items
+     * @param value The item that needs to be painted
+     * @param index The index of the item that is selected in the list
+     * @param isSelected Boolean for if the item is selected
+     * @param cellHasFocus Boolean for is the given cell has focus
+     * @return The rendered component
+     * */
 	public Component getListCellRendererComponent(JList<? extends Item> list, Item value, int index, boolean isSelected, boolean cellHasFocus) {
         setItem(value);
         if (isSelected) {
@@ -71,10 +82,7 @@ public class ItemView extends JPanel implements ListCellRenderer<Item>{
 		return this;
 	}
     
-    public Item getItem() {
-    	return this.item;
-    }
-    
+    /**Sets the item to be painted.*/
     public void setItem(Item item) {
     	this.item = item;
     }

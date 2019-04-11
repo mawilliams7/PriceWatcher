@@ -10,14 +10,12 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Desktop;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseListener;
 import java.io.IOException;
@@ -37,6 +35,7 @@ import javax.swing.Box;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -56,7 +55,7 @@ import javax.swing.SwingUtilities;
 public class Main extends JFrame {
 
     /** Default dimension of the GUI. */
-    private final static Dimension DEFAULT_SIZE = new Dimension(2000, 2000);
+    private final static Dimension DEFAULT_SIZE = new Dimension(1250, 1000);
       
     /** Item Manager for the GUI. */
     private FileItemManager itemManager;
@@ -75,9 +74,7 @@ public class Main extends JFrame {
     
     /** The JList for the GUI. */
     private JList<Item> jList;
-    
-    private JToolBar toolBar;
-      
+
     /** Message bar to display various messages. */
     private JLabel msgBar = new JLabel(" ");
 
@@ -95,7 +92,6 @@ public class Main extends JFrame {
      * */
     public Main(Dimension dim) {
     	super("Price Watcher");
-    	System.out.println("S");
     	this.priceFinder = new PriceFinder();
     	try {
     		setMenuBar();  
@@ -109,8 +105,7 @@ public class Main extends JFrame {
         intializeListModel();
         configureUI();
     }
-    /** Initializes the list model using the Item Manager. 
-     * */
+    /** Initializes the list model using the Item Manager. */
     private void intializeListModel() {
         listModel = new DefaultListModel<Item>();
         for(Item iter: this.itemManager.getAllItems()) {
@@ -118,8 +113,7 @@ public class Main extends JFrame {
         }
     	
     }
-    /** Uses an audio clip to alert the user if a price of an item has dropped. 
-     * */
+    /** Uses an audio clip to alert the user if a price of an item has dropped. */
     private void alertPriceDropped() {     
     	try {
     		// Open an audio input stream.           
@@ -151,7 +145,6 @@ public class Main extends JFrame {
         catch(IOException e) {
         	
         }
-        //control.add(toolBar);
         toolBar.setBorder(BorderFactory.createEmptyBorder(10,16,0,16)); 
         add(toolBar, BorderLayout.NORTH);
         JPanel board = new JPanel();
@@ -253,7 +246,9 @@ public class Main extends JFrame {
     } 
       
     /** Create a control panel consisting of a refresh button. 
-     * @throws IOException */
+     * @throws IOException 
+     * @return A completely functional JToolBar
+     * */
     private JToolBar makeToolBar() throws IOException {
     	JToolBar panel = new JToolBar();
     	// Creates the buttons for the tool bar
@@ -364,27 +359,19 @@ public class Main extends JFrame {
     /** Adds item based on user input.
      * */
     private void addItem() {
+
+        JDialog dialog = new JDialog(this, "Adding item"); 
+        
         JTextField itemNameField = new JTextField(10);
         JTextField itemURLField = new JTextField(10);
         JTextField itemPriceField = new JTextField(10);
         JTextField itemDateAddedField = new JTextField(getCurrentDate());
-
-        JPanel myPanel = new JPanel();
-        myPanel.add(new JLabel("New item name:"));
-        myPanel.add(itemNameField);
-        myPanel.add(Box.createVerticalStrut(30));
-        myPanel.add(new JLabel("new item URL:"));
-        myPanel.add(itemURLField);
-        myPanel.add(Box.createVerticalStrut(30));
-        myPanel.add(new JLabel("New item price:"));
-        myPanel.add(itemPriceField);
-        myPanel.add(Box.createVerticalStrut(30));
-        myPanel.add(new JLabel("New date added:"));
-        myPanel.add(itemDateAddedField);
-        add(myPanel);
-        int result = JOptionPane.showConfirmDialog(null, myPanel, 
-                "Enter new item information  ", JOptionPane.OK_CANCEL_OPTION);
-        if (result == JOptionPane.OK_OPTION) {
+        
+        // Sets the buttons for the dialog
+        JButton add = new JButton("Add");
+        JButton cancel = new JButton("Cancel");
+        
+        add.addActionListener(event -> {
         	Item newItem = new Item();
         	newItem.setName(itemNameField.getText());
         	newItem.setURL(itemURLField.getText());
@@ -394,10 +381,37 @@ public class Main extends JFrame {
         	this.itemManager.addItem(newItem);
         	listModel.addElement(newItem);
         	super.repaint();
-        }
+        	dialog.dispose();
+        	super.repaint();
+        });
+        cancel.addActionListener(event -> {
+        	dialog.dispose();
+        });
+        
+        JPanel myPanel = new JPanel();
+        myPanel.add(new JLabel("New item name:"));
+        myPanel.add(itemNameField);
+        myPanel.add(Box.createVerticalStrut(30));
+        myPanel.add(new JLabel("New item URL:"));
+        myPanel.add(itemURLField);
+        myPanel.add(Box.createVerticalStrut(30));
+        myPanel.add(new JLabel("New item price:"));
+        myPanel.add(itemPriceField);
+        myPanel.add(Box.createVerticalStrut(30));
+        myPanel.add(new JLabel("New date added:"));
+        myPanel.add(itemDateAddedField);
+        myPanel.add(Box.createVerticalStrut(30));
+        myPanel.add(Box.createHorizontalStrut(100));
+        myPanel.add(add);
+        myPanel.add(cancel);
+        dialog.add(myPanel);
+        dialog.setSize(200, 300); 
+        dialog.setVisible(true);
+
     }
     
     /** Gets the current date
+     * @return The current date in 'MM/dd/yyyy' format
      * */
     private String getCurrentDate() {
     	DateTimeFormatter dtf = DateTimeFormatter.ofPattern("MM/dd/yyyy");  
@@ -441,7 +455,7 @@ public class Main extends JFrame {
      * @param item The item to be edited
      * */
     private void editItem(Item item) {
-    	itemManager.deleteItemFile(item);
+    	JDialog dialog = new JDialog(this, "Editing item"); 
         JTextField itemNameField = new JTextField(item.getName());
         JTextField itemURLField = new JTextField(item.getURL());
 
@@ -449,17 +463,34 @@ public class Main extends JFrame {
         myPanel.add(new JLabel("Item name:"));
         myPanel.add(itemNameField);
         myPanel.add(Box.createVerticalStrut(30));
+        myPanel.add(Box.createHorizontalStrut(30));
         myPanel.add(new JLabel("Item URL:"));
+        myPanel.add(Box.createVerticalStrut(30));
         myPanel.add(itemURLField);
-        add(myPanel);
-        int result = JOptionPane.showConfirmDialog(null, myPanel, 
-                "Enter edits", JOptionPane.OK_CANCEL_OPTION);
-        if (result == JOptionPane.OK_OPTION) {
-        	item.setName(itemNameField.getText());
-        	item.setURL(itemURLField.getText());
-        }
-        this.itemManager.updateItem(item);
-        super.repaint();
+        dialog.add(myPanel);
+        
+        JButton edit = new JButton("Edit");
+        JButton cancel = new JButton("Cancel");
+        
+        edit.addActionListener(event -> {
+        	itemManager.deleteItemFile(item);
+            item.setName(itemNameField.getText());
+            item.setURL(itemURLField.getText());
+            this.itemManager.updateItem(item);
+            dialog.dispose();
+            super.repaint();
+        });
+        cancel.addActionListener(event -> {
+        	dialog.setVisible(false);
+        	super.repaint();
+        	dialog.dispose();
+        });
+        
+        myPanel.add(edit);
+        myPanel.add(cancel);
+        
+        dialog.setSize(500, 200); 
+        dialog.setVisible(true);
     }
     /** Launches website of an item.
      * @param item The item whose website the user wants to go to

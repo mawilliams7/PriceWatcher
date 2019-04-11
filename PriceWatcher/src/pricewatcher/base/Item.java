@@ -1,4 +1,4 @@
-package pricewatcher.base;
+  package pricewatcher.base;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -36,6 +36,12 @@ public class Item {
 	 */
 	private String dateAdded;
 	
+    /** Constructor for an Item object.
+     * @param name The name of the item
+     * @param price The original price of the item
+     * @param url The url of the item
+     * @param dateAdded The date the item was added
+     * */
 	public Item(String name, double price, String url, String dateAdded) {
 		this.name = name;
 		this.currentPrice = price;
@@ -45,39 +51,65 @@ public class Item {
 		this.dateAdded = dateAdded;
 	}
 	
+	/** Default constructor for an Item object*/
 	public Item() {
 	}
 	
+    /** Updates the price for an Item.
+     * @param newPrice The new price of the item
+     * */
 	public void updatePrice(double newPrice) {
 		this.priceChange = ((newPrice - this.originalPrice) / (this.originalPrice)) * 100;
 		this.currentPrice = newPrice;
 	}
 	
+    /** Gets the original price of an item.
+     * @return The original price of the item
+     * */
 	public double getOriginalPrice() {
 		return this.originalPrice;
 	}
 	
+    /** Gets the current price of an item.
+     * @return The current price of the item
+     * */
 	public double getCurrentPrice() {
 		return this.currentPrice;
 	}
 	
+    /** Gets the price change of an item.
+     * @return The price change of the item
+     * */
 	public double getPriceChange() {
 		return this.priceChange;
 	}
 	
+    /** Gets the url of an item.
+     * @return The url of the item
+     * */
 	public String getURL() {
 		return this.url;
 	}
 	
+    /** Gets the name of an item.
+     * @return The name of the item
+     * */
 	public String getName() {
 		return this.name;
 	}
 	
+    /** Gets the date the item was added.
+     * @return The date the item was added
+     * */
 	public String getDateAdded() {
 		return this.dateAdded;
 	}
 	
 	@Override
+    /** GThe equals method for item
+     * @param obj The object to be compared to
+     * @return Checks if the Object passed is equal to item
+     * */
 	public boolean equals(Object obj) {
 		Item comp = (Item) obj;
 		if(!this.name.equals(comp.getName())) {
@@ -99,26 +131,44 @@ public class Item {
 		return true;
 	}
 	
+    /** Sets the current price of the item
+     * @param currentPrice The current price of the Item
+     * */
 	public void setCurrentPrice(double currentPrice) {
 		this.currentPrice = currentPrice;
 	}
 	
-	public void setOriginalPrice(double newPrice) {
-		this.originalPrice = newPrice;
-	}
-	
-	public void setDateAdded(String dateAdded) {
-		this.dateAdded = dateAdded;
-	}
-
+    /** Sets the url of the item
+     * @param url The url of the item
+     * */
 	public void setURL(String url) {
 		this.url = url;
 	}
 	
+    /** Sets the name of the item
+     * @param name The name of the Item
+     * */
 	public void setName(String name) {
 		this.name = name;
 	}
 	
+    /** Sets the original price of the item
+     * @param price The original price of the item
+     * */
+	public void setOriginalPrice(Double price) {
+		this.originalPrice = price;
+	}
+	
+    /** Sets the date the item was added
+     * @param dateAdded The date the item was added
+     * */
+	public void setDateAdded(String dateAdded) {
+		this.dateAdded = dateAdded;
+	}
+	
+    /** Converts an Item to a JSONObject
+     * @return The item as a JSON object
+     * */
 	public JSONObject toJSON() {
 	    Map<String, Object> map = new HashMap<>();
 	    map.put("name", name);

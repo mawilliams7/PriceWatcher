@@ -42,7 +42,6 @@ import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
@@ -93,6 +92,7 @@ public class Main extends JFrame {
     public Main(Dimension dim) {
     	super("Price Watcher");
     	this.priceFinder = new PriceFinder();
+    	// Creates the menu bar for the Price Watcher
     	try {
     		setMenuBar();  
     	}
@@ -138,6 +138,7 @@ public class Main extends JFrame {
     /** Configures UI for the GUI. */
     private void configureUI() {
         setLayout(new BorderLayout());
+        // Creates the tool bar
         JToolBar toolBar = new JToolBar();
         try {
         	toolBar = makeToolBar();
@@ -147,6 +148,7 @@ public class Main extends JFrame {
         }
         toolBar.setBorder(BorderFactory.createEmptyBorder(10,16,0,16)); 
         add(toolBar, BorderLayout.NORTH);
+        // Creates the board that display item
         JPanel board = new JPanel();
         board.setBorder(BorderFactory.createCompoundBorder(
         		BorderFactory.createEmptyBorder(10,16,0,16),
@@ -154,6 +156,7 @@ public class Main extends JFrame {
         board.setLayout(new GridLayout(1,1));
         jList = new JList<Item>(listModel);
         jList.setCellRenderer(new ItemView());
+        // The Mouse Listener for the Item 
         MouseListener mouseListener = new MouseAdapter() {
 			public void mouseClicked(MouseEvent mouseEvent) {
               JList theList = (JList) mouseEvent.getSource();
@@ -346,6 +349,7 @@ public class Main extends JFrame {
     private void updatePrice(Item item) {
     	try {
 	    	item.updatePrice(this.priceFinder.getNewPrice(item));
+	    	itemManager.updateItem(item);
 	    	if(item.getPriceChange() < 0) {
 	    		alertPriceDropped();
 	    	}
@@ -423,20 +427,8 @@ public class Main extends JFrame {
     /** Updates the prices of all the items.
      * */
     private void updateAllPrices() {
-    	boolean priceDropped = false;
     	for(Item iter: this.itemManager.getAllItems()) {
-    		try {
-	    		iter.updatePrice(this.priceFinder.getNewPrice(iter));
-	        	if(iter.getPriceChange() < 0) {
-	        		priceDropped = true;
-	        	}
-    		}
-	        catch (Exception e){
-	        	
-	        }
-    	}
-    	if(priceDropped) {
-    		alertPriceDropped();
+    		updatePrice(iter);
     	}
     	super.repaint();
     }   

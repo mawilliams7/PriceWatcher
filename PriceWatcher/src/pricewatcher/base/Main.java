@@ -44,6 +44,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
@@ -57,16 +58,21 @@ public class Main extends JFrame {
     private final static Dimension DEFAULT_SIZE = new Dimension(1250, 1000);
       
     /** Item Manager for the GUI. */
-    private FileItemManager itemManager;
+    protected FileItemManager itemManager;
     
     /** Item that the user is currently selecting. */
     private Item selectedItem;
     
     /** Price Finder for the items.*/
-    private PriceFinder priceFinder;
+    protected WebPriceFinder priceFinder;
     
     /** Menu bar for the GUI. */
-    private JMenuBar menuBar;
+    protected JMenuBar menuBar;
+    
+    /** Progress bar for the GUI. */
+    protected JProgressBar progressBar;
+    
+    protected boolean allNeedUpdate;
     
     /** The list model for the JList. */
     private DefaultListModel<Item> listModel;
@@ -91,13 +97,13 @@ public class Main extends JFrame {
      * */
     public Main(Dimension dim) {
     	super("Price Watcher");
-    	this.priceFinder = new PriceFinder();
+    	this.priceFinder = new WebPriceFinder();
     	// Creates the menu bar for the Price Watcher
     	try {
     		setMenuBar();  
     	}
     	catch (IOException e) {
-    		
+    		e.printStackTrace();
     	}
         setSize(dim);
         setResizable(true);
@@ -106,7 +112,7 @@ public class Main extends JFrame {
         configureUI();
     }
     /** Initializes the list model using the Item Manager. */
-    private void intializeListModel() {
+    protected void intializeListModel() {
         listModel = new DefaultListModel<Item>();
         for(Item iter: this.itemManager.getAllItems()) {
         	listModel.addElement(iter);
@@ -114,7 +120,7 @@ public class Main extends JFrame {
     	
     }
     /** Uses an audio clip to alert the user if a price of an item has dropped. */
-    private void alertPriceDropped() {     
+    protected void alertPriceDropped() {     
     	try {
     		// Open an audio input stream.           
     		AudioInputStream audioIn = AudioSystem.getAudioInputStream(getClass().getResource("/sound/sample.wav"));              
@@ -136,7 +142,7 @@ public class Main extends JFrame {
     }
     
     /** Configures UI for the GUI. */
-    private void configureUI() {
+    protected void configureUI() {
         setLayout(new BorderLayout());
         // Creates the tool bar
         JToolBar toolBar = new JToolBar();
@@ -195,7 +201,7 @@ public class Main extends JFrame {
     /** Populates the menu bar for the GUI. 
      * @throws IOException
      * */
-    private void setMenuBar() throws IOException {
+    protected void setMenuBar() throws IOException {
     	menuBar = new JMenuBar();
 
     	JMenu menu = new JMenu("Item");
@@ -209,8 +215,11 @@ public class Main extends JFrame {
     	                         KeyEvent.VK_T);
     	checkPrices.setAccelerator(KeyStroke.getKeyStroke(
     	        KeyEvent.VK_1, ActionEvent.ALT_MASK));
-    	checkPrices.addActionListener(e ->updateAllPrices());
-    	checkPrices.setIcon(new ImageIcon(ImageIO.read(getClass().getResourceAsStream("/image/update.png")).getScaledInstance(20, 20, Image.SCALE_SMOOTH)));
+    	checkPrices.addActionListener(e -> {
+        	Thread helper = new Thread(new MyThread());
+        	helper.start();
+    	});
+    	checkPrices.setIcon(new ImageIcon(ImageIO.read(getClass().getResourceAsStream("/image/update.PNG")).getScaledInstance(20, 20, Image.SCALE_SMOOTH)));
     	menu.add(checkPrices);
     	
     	JMenuItem addItem = new JMenuItem("Add Item",
@@ -218,24 +227,24 @@ public class Main extends JFrame {
 		addItem.setAccelerator(KeyStroke.getKeyStroke(
 				KeyEvent.VK_2, ActionEvent.ALT_MASK));
 		addItem.addActionListener(e ->addItem());
-		addItem.setIcon(new ImageIcon(ImageIO.read(getClass().getResourceAsStream("/image/add.png")).getScaledInstance(20, 20, Image.SCALE_SMOOTH)));
-    	menu.add(addItem);
+		addItem.setIcon(new ImageIcon(ImageIO.read(getClass().getResourceAsStream("/image/add.PNG")).getScaledInstance(20, 20, Image.SCALE_SMOOTH)));
+    	menu.add(addItem);	
     }
     
     /** Handles pop-ups for the user. 
      * @param item The item that is being selected
      * @param poin The point where the user requested the pop-up
      * */
-    public void popUpRequested(Item item, Point point) throws IOException { 
+    protected void popUpRequested(Item item, Point point) throws IOException { 
         JPopupMenu pm = new JPopupMenu();
         JMenuItem m1 = new JMenuItem("Get Current Price");
-        m1.setIcon(new ImageIcon(ImageIO.read(getClass().getResourceAsStream("/image/update.png")).getScaledInstance(20, 20, Image.SCALE_SMOOTH)));
+        m1.setIcon(new ImageIcon(ImageIO.read(getClass().getResourceAsStream("/image/update.PNG")).getScaledInstance(20, 20, Image.SCALE_SMOOTH)));
         JMenuItem m2 = new JMenuItem("View Webpage");
         m2.setIcon(new ImageIcon(ImageIO.read(getClass().getResourceAsStream("/image/view.jpg")).getScaledInstance(20, 20, Image.SCALE_SMOOTH)));
         JMenuItem m3 = new JMenuItem("Edit Item");
-        m3.setIcon(new ImageIcon(ImageIO.read(getClass().getResourceAsStream("/image/edit.png")).getScaledInstance(20, 20, Image.SCALE_SMOOTH)));
+        m3.setIcon(new ImageIcon(ImageIO.read(getClass().getResourceAsStream("/image/edit.PNG")).getScaledInstance(20, 20, Image.SCALE_SMOOTH)));
         JMenuItem m4 = new JMenuItem("Remove Item");
-        m4.setIcon(new ImageIcon(ImageIO.read(getClass().getResourceAsStream("/image/remove.png")).getScaledInstance(20, 20, Image.SCALE_SMOOTH)));
+        m4.setIcon(new ImageIcon(ImageIO.read(getClass().getResourceAsStream("/image/remove.PNG")).getScaledInstance(20, 20, Image.SCALE_SMOOTH)));
         pm.add(m1); 
         pm.add(m2); 
         pm.add(m3);  
@@ -252,19 +261,22 @@ public class Main extends JFrame {
      * @throws IOException 
      * @return A completely functional JToolBar
      * */
-    private JToolBar makeToolBar() throws IOException {
+    protected JToolBar makeToolBar() throws IOException {
     	JToolBar panel = new JToolBar();
     	// Creates the buttons for the tool bar
         JButton allPrices = new JButton();
         allPrices.setToolTipText("Update all prices");
-        allPrices.setIcon(new ImageIcon(ImageIO.read(getClass().getResourceAsStream("/image/update.png")).getScaledInstance(20, 20, Image.SCALE_SMOOTH)));
-        allPrices.addActionListener(e -> updateAllPrices());
+        allPrices.setIcon(new ImageIcon(ImageIO.read(getClass().getResourceAsStream("/image/update.PNG")).getScaledInstance(20, 20, Image.SCALE_SMOOTH)));
+        allPrices.addActionListener(e -> {
+        	Thread helper = new Thread(new MyThread());
+        	helper.start();
+        });
         allPrices.setFocusPainted(false);
         panel.add(allPrices);
         
         JButton addItem = new JButton();
         addItem.setToolTipText("Add an item");
-        addItem.setIcon(new ImageIcon(ImageIO.read(getClass().getResourceAsStream("/image/add.png")).getScaledInstance(20, 20, Image.SCALE_SMOOTH)));
+        addItem.setIcon(new ImageIcon(ImageIO.read(getClass().getResourceAsStream("/image/add.PNG")).getScaledInstance(20, 20, Image.SCALE_SMOOTH)));
         addItem.addActionListener(e -> addItem());
         addItem.setFocusPainted(false);
         panel.add(addItem);
@@ -272,7 +284,7 @@ public class Main extends JFrame {
         
         JButton updatePrice = new JButton();
         updatePrice.setToolTipText("Update Price of Selected Item");
-        updatePrice.setIcon(new ImageIcon(ImageIO.read(getClass().getResourceAsStream("/image/update.png")).getScaledInstance(20, 20, Image.SCALE_SMOOTH)));
+        updatePrice.setIcon(new ImageIcon(ImageIO.read(getClass().getResourceAsStream("/image/update.PNG")).getScaledInstance(20, 20, Image.SCALE_SMOOTH)));
         updatePrice.addActionListener(e -> updatePriceOfSelectedItem());
         updatePrice.setFocusPainted(false);
         panel.add(updatePrice);
@@ -286,23 +298,48 @@ public class Main extends JFrame {
         
         JButton editItem = new JButton();
         editItem.setToolTipText("Edit Selected Item");
-        editItem.setIcon(new ImageIcon(ImageIO.read(getClass().getResourceAsStream("/image/edit.png")).getScaledInstance(20, 20, Image.SCALE_SMOOTH)));
+        editItem.setIcon(new ImageIcon(ImageIO.read(getClass().getResourceAsStream("/image/edit.PNG")).getScaledInstance(20, 20, Image.SCALE_SMOOTH)));
         editItem.addActionListener(e -> editSelectedItem());
         editItem.setFocusPainted(false);
         panel.add(editItem);
         
         JButton removeItem = new JButton();
         removeItem.setToolTipText("Remove Selected Item");
-        removeItem.setIcon(new ImageIcon(ImageIO.read(getClass().getResourceAsStream("/image/remove.png")).getScaledInstance(20, 20, Image.SCALE_SMOOTH)));
+        removeItem.setIcon(new ImageIcon(ImageIO.read(getClass().getResourceAsStream("/image/remove.PNG")).getScaledInstance(20, 20, Image.SCALE_SMOOTH)));
         removeItem.addActionListener(e -> removeSelectedItem());
         removeItem.setFocusPainted(false);
         panel.add(removeItem);
-        return panel;
+        
+        panel.add(Box.createHorizontalStrut(100));
+        progressBar = new JProgressBar(0, 100);
+        progressBar.setVisible(false);
+        progressBar.setValue(0);
+        panel.add(progressBar);
+        
+        return panel;   
     }
     
+    /**Nested class for the thread used to updated all prices.*/
+    class MyThread implements Runnable {
+    	/**Updates item prices and the progress bar*/
+    	public void run() {
+	    	try {
+				Thread.sleep(250);
+			} 
+	    	catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+	    	synchronized(this) {
+			   	progressBar.setVisible(true);
+			    updateAllPrices();
+			   	allNeedUpdate = false;
+			   	progressBar.setVisible(false);
+	    	}
+    	}
+    }
     /** Updates price of selected item. 
      * */
-    private void updatePriceOfSelectedItem(){
+    protected void updatePriceOfSelectedItem(){
     	if(selectedItem != null) {
     		updatePrice(selectedItem);
     	}
@@ -313,7 +350,7 @@ public class Main extends JFrame {
     
     /** Launches website of selected item.
      * */
-    private void launchWebsiteOfSelectedItem(){
+    protected void launchWebsiteOfSelectedItem(){
     	if(selectedItem != null) {
     		launchWebsite(selectedItem);
     	}
@@ -324,7 +361,7 @@ public class Main extends JFrame {
     
     /** Allows user to edit selected item.
      * */
-    private void editSelectedItem(){
+    protected void editSelectedItem(){
     	if(selectedItem != null) {
     		editItem(selectedItem);
     	}
@@ -335,7 +372,7 @@ public class Main extends JFrame {
     
     /** Allows user to remove selected item.
      * */
-    private void removeSelectedItem(){
+    protected void removeSelectedItem(){
     	if(selectedItem != null) {
     		removeItem(selectedItem);
     	}
@@ -346,7 +383,7 @@ public class Main extends JFrame {
     /** Updates the price of an item.
      * @param item The item to be updated
      * */
-    private void updatePrice(Item item) {
+    protected void updatePrice(Item item) {
     	try {
 	    	item.updatePrice(this.priceFinder.getNewPrice(item));
 	    	itemManager.updateItem(item);
@@ -356,13 +393,14 @@ public class Main extends JFrame {
 	    	super.repaint();
     	}
     	catch (Exception e){
+    		e.printStackTrace();
     		showMessage("Unable to update price.");
     	}
     }
     
     /** Adds item based on user input.
      * */
-    private void addItem() {
+    protected void addItem() {
 
         JDialog dialog = new JDialog(this, "Adding item"); 
         
@@ -417,7 +455,7 @@ public class Main extends JFrame {
     /** Gets the current date
      * @return The current date in 'MM/dd/yyyy' format
      * */
-    private String getCurrentDate() {
+    protected String getCurrentDate() {
     	DateTimeFormatter dtf = DateTimeFormatter.ofPattern("MM/dd/yyyy");  
     	LocalDateTime now = LocalDateTime.now();
     	return dtf.format(now);
@@ -425,18 +463,22 @@ public class Main extends JFrame {
     }
     
     /** Updates the prices of all the items.
+     * @throws InterruptedException 
      * */
-    private void updateAllPrices() {
+    protected void updateAllPrices() {
+    	int increment = 100 / this.itemManager.getAllItems().size();
     	for(Item iter: this.itemManager.getAllItems()) {
+    		progressBar.setValue(progressBar.getValue() + increment);
     		updatePrice(iter);
     	}
+    	progressBar.setValue(0);
     	super.repaint();
     }   
     
     /** Launches website of selected item.
      * @param item The item to be removed
      * */
-    private void removeItem(Item item) {
+    protected void removeItem(Item item) {
     	itemManager.removeItem(item);
         if (listModel.size() > 0) {
         	listModel.removeElement(item);
@@ -446,7 +488,7 @@ public class Main extends JFrame {
     /** Allows the user to edit an item.
      * @param item The item to be edited
      * */
-    private void editItem(Item item) {
+    protected void editItem(Item item) {
     	JDialog dialog = new JDialog(this, "Editing item"); 
         JTextField itemNameField = new JTextField(item.getName());
         JTextField itemURLField = new JTextField(item.getURL());
@@ -487,7 +529,7 @@ public class Main extends JFrame {
     /** Launches website of an item.
      * @param item The item whose website the user wants to go to
      * */
-	private void launchWebsite(Item item) {
+	protected void launchWebsite(Item item) {
 		/* Launches item web sites in user's default browser*/
 		if (Desktop.isDesktopSupported()) {
 			Desktop desktop = Desktop.getDesktop();
@@ -507,7 +549,7 @@ public class Main extends JFrame {
     /** Show briefly the given string in the message bar. 
      * @param msg The message to be displayed
      * */
-    private void showMessage(String msg) {
+    protected void showMessage(String msg) {
         msgBar.setText(msg);
         new Thread(() -> {
         	try {
@@ -523,18 +565,13 @@ public class Main extends JFrame {
     /** Sets the selected item
      * @item item The item the user has selected
      * */
-    public void setSelectedItem(Item item) {
+    protected void setSelectedItem(Item item) {
     	this.selectedItem = item;
     }
     
     /** Initializes the item manager
      * */
-    private void initializeItemManager() {
+    protected void initializeItemManager() {
     	this.itemManager = new FileItemManager();
     }
-    
-    public static void main(String[] args) {
-    	new Main();
-    }
-
 }

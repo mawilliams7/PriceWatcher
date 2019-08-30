@@ -26,7 +26,7 @@ public class FileItemManager extends ItemManager{
 			writeItem(item);
 		}
 		catch(Exception e) {
-			System.out.println(e);
+			e.printStackTrace();
 		}
 	    
 	}
@@ -39,7 +39,7 @@ public class FileItemManager extends ItemManager{
 			writeItem(item);
 		}
 		catch(Exception e) {
-			System.out.println(e);
+			e.printStackTrace();
 		}
 	}
 	
@@ -63,10 +63,12 @@ public class FileItemManager extends ItemManager{
 	/** Loads in items to manager from item files. 
 	 * */
 	public void loadItems() {
-		File folder = new File("src/storage/");
-		for(File file : folder.listFiles()) {
-			if(readItemFromFile(file) != null) {
-				super.addItem(readItemFromFile(file));
+		File folder = new File("src/storage");
+		if(folder.listFiles() != null) {
+			for(File file : folder.listFiles()) {
+				if((file.getName()).contains(".json") && readItemFromFile(file) != null) {
+					super.addItem(readItemFromFile(file));
+				}
 			}
 		}
 	}
@@ -84,7 +86,7 @@ public class FileItemManager extends ItemManager{
 			 return item;
 		 }
 		 catch (Exception e) {
-			 System.out.println(e);
+			 e.printStackTrace();
 			 return null;
 		 }
 	}
@@ -117,6 +119,7 @@ public class FileItemManager extends ItemManager{
 		    return item;
 		}
 		catch (Exception e) {
+			e.printStackTrace();
 			return null;
 		}
 	}
